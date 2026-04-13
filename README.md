@@ -44,9 +44,10 @@ streamlit run app_streamlit.py
 
 ### Install
 ```bash
-pip install streamlit flask pandas numpy jellyfish xgboost joblib scikit-learn openpyxl
+pip install streamlit flask pandas numpy jellyfish xgboost joblib scikit-learn openpyxl matplotlib seaborn
 ```
 
 Ahmed Mnaouer • 2025
+Project supervised by Dr. El Moubarki Lassad 
 
 Fully offline multilingual AML screening (Arabic / French / English)

@@ -134,6 +134,14 @@ class AMLMLModels:
         ).sort_values("importance", ascending=False)
         print("Feature Importance (XGBoost):")
         print(feature_importance)
+
+        feature_importance.plot(kind='barh', x='feature', y='importance', legend=False, color='#4C72B0')
+        plt.title('XGBoost Feature Importance')
+        plt.xlabel('Importance Score')
+        plt.tight_layout()
+        plt.savefig('fig_feature_importance.png', dpi=150, bbox_inches='tight')
+        plt.clf()
+
         return xgb_model
 
     def evaluate_model(self, model_name, model, use_scaled_data=True):
@@ -176,6 +184,26 @@ class AMLMLModels:
         results = {}
         for model_name, model in self.models.items():
             results[model_name] = self.evaluate_model(model_name, model)
+
+        import seaborn as sns
+        n_models = len(self.models)
+        fig, axes = plt.subplots(1, n_models, figsize=(6 * n_models, 5))
+        if n_models == 1:
+            axes = [axes]
+        class_names = ["ALLOWED", "AMBIGUOUS", "BLOCKED"]
+        for ax, (model_name, model) in zip(axes, self.models.items()):
+            y_pred = model.predict(self.X_test)
+            cm = confusion_matrix(self.y_test, y_pred)
+            sns.heatmap(cm, annot=True, fmt='d', ax=ax,
+                        xticklabels=class_names, yticklabels=class_names,
+                        cmap='Blues')
+            ax.set_title(model_name)
+            ax.set_xlabel('Predicted')
+            ax.set_ylabel('Actual')
+        plt.tight_layout()
+        plt.savefig('fig_confusion_matrices.png', dpi=150, bbox_inches='tight')
+        plt.clf()
+
         print("\n=== CROSS-VALIDATION RESULTS (on Train) ===")
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         for model_name, model in self.models.items():
@@ -262,6 +290,7 @@ class AMLMLModels:
         plt.legend(loc="lower right", fontsize="small")
         plt.grid(True)
         plt.tight_layout()
+        plt.savefig('fig_roc_curves.png', dpi=150, bbox_inches='tight')
         plt.show()
 
 class AMLTrainingDataGenerator:
@@ -447,10 +476,11 @@ class AMLTrainingDataGenerator:
 
 def main():
     print("Step 1: Load or generate training dataset...")
-    training_data_path = r"C:\Users\Klaw\Desktop\Ahmed\AML-project\dataset\cleaned_aml_data.xlsx"
+    training_data_path = r"C:\Users\ahmed\OneDrive\Desktop\aml-name-screening_project-main\aml-name-screening_project-main\dataset\cleaned_aml_data.xlsx"
     try:
-        training_df = pd.read_excel(training_data_path)
-        print(f"Loaded training dataset: {training_df.shape}")
+        watchlist_df = pd.read_excel(training_data_path)
+        watchlist_df = watchlist_df.dropna(subset=['Full Name', 'Risk Category'])
+        print(f"Loaded watchlist: {watchlist_df.shape}")
     except Exception as e:
         print(f"Could not load {training_data_path}: {e}. Generating new dataset...")
         watchlist_df = pd.DataFrame({
@@ -458,9 +488,55 @@ def main():
             "Risk Category": ["Terrorism Financing", "PEP"],
             "Nationality": ["USA", "Syria"]
         })
-        generator = AMLTrainingDataGenerator(watchlist_df)
-        training_df = generator.generate_training_dataset()
+            
+    import matplotlib.pyplot as plt
+    risk_counts = watchlist_df['Risk Category'].value_counts()
+    plt.figure()
+    risk_counts.plot(kind='bar', color=['#4C72B0','#DD8452','#55A868'])
+    plt.title('Risk Category Distribution')
+    plt.xlabel('Risk Category')
+    plt.ylabel('Count')
+    plt.xticks(rotation=30, ha='right')
+    plt.tight_layout()
+    plt.savefig('fig_risk_dist.png', dpi=150, bbox_inches='tight')
+    plt.clf()
+        
+    watchlist_sample = watchlist_df.sample(n=300, random_state=42).reset_index(drop=True)
+    generator = AMLTrainingDataGenerator(watchlist_sample)
+    training_df = generator.generate_training_dataset(
+        num_variations_per_watchlist=3,
+        num_random_names=200
+    )
+
+    decision_counts = training_df['decision'].value_counts()
+    plt.figure()
+    decision_counts.plot(kind='bar', color=['#55A868','#DD8452','#C44E52'])
+    plt.title('Generated Training Decision Labels')
+    plt.xlabel('Decision')
+    plt.ylabel('Count')
+    plt.xticks(rotation=0)
+    plt.tight_layout()
+    plt.savefig('fig_decision_dist.png', dpi=150, bbox_inches='tight')
+    plt.clf()
+
     print(f"Decision distribution:\n{training_df['decision'].value_counts()}")
+
+    fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+    for decision, group in training_df.groupby('decision'):
+        axes[0].hist(group['jaro_winkler_score'], bins=20, alpha=0.6, label=decision)
+        axes[1].hist(group['levenshtein_score'],  bins=20, alpha=0.6, label=decision)
+    axes[0].set_title('Jaro-Winkler Score by Decision')
+    axes[0].set_xlabel('Score')
+    axes[0].set_ylabel('Frequency')
+    axes[0].legend()
+    axes[1].set_title('Levenshtein Score by Decision')
+    axes[1].set_xlabel('Score')
+    axes[1].set_ylabel('Frequency')
+    axes[1].legend()
+    plt.tight_layout()
+    plt.savefig('fig_feature_hist.png', dpi=150, bbox_inches='tight')
+    plt.clf()
+
     # Balance classes
     allowed_df = training_df[training_df["decision"] == "ALLOWED"]
     ambiguous_df = training_df[training_df["decision"] == "AMBIGUOUS"]
