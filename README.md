@@ -49,6 +49,4 @@ pip install streamlit flask pandas numpy jellyfish xgboost joblib scikit-learn o
 
 Ahmed Mnaouer • 2025
 
-Project supervised by Dr. El Moubarki Lassad 
-
 Fully offline multilingual AML screening (Arabic / French / English)
