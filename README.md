@@ -44,7 +44,7 @@ streamlit run app_streamlit.py
 
 ### Install
 ```bash
-pip install streamlit flask pandas numpy jellyfish xgboost joblib scikit-learn openpyxl matplotlib seaborn
+pip install streamlit flask pandas numpy jellyfish xgboost joblib scikit-learn openpyxl matplotlib seaborn googletrans
 ```
 
 Ahmed Mnaouer • 2025
