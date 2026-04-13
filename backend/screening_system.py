@@ -16,7 +16,7 @@ warnings.filterwarnings('ignore')
 
 
 # Loading the dataset
-df = pd.read_excel(r"C:\Users\Klaw\Desktop\Ahmed\AML-project\cleaned_aml_data.xlsx")
+df = pd.read_excel(r"C:\Users\ahmed\OneDrive\Desktop\aml-name-screening_project-main\dataset\cleaned_aml_data.xlsx")
 
 # Make sure it is loaded
 print(f"Dataset loaded successfully!")

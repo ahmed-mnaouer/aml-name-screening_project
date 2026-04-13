@@ -476,7 +476,7 @@ class AMLTrainingDataGenerator:
 
 def main():
     print("Step 1: Load or generate training dataset...")
-    training_data_path = r"C:\Users\ahmed\OneDrive\Desktop\aml-name-screening_project-main\aml-name-screening_project-main\dataset\cleaned_aml_data.xlsx"
+    training_data_path = r"C:\Users\ahmed\OneDrive\Desktop\aml-name-screening_project-main\dataset\cleaned_aml_data.xlsx"
     try:
         watchlist_df = pd.read_excel(training_data_path)
         watchlist_df = watchlist_df.dropna(subset=['Full Name', 'Risk Category'])
